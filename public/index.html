@@ -1,0 +1,127 @@
+<html>
+	<head>
+		<title>Drawing Pixels Together</title>
+		<link href='https://fonts.googleapis.com/css?family=Lekton:400,700' rel='stylesheet' type='text/css'>		
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body >
+		<h1>Drawing Pixels Together</h1>
+		<p>Drawing pixels with arrows on your keyboard.</p>
+		<div id="canvasContainer"></div>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script language="javascript" type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.js"></script>
+		<script src="p5.js"></script>
+		<script type="text/javascript">
+		
+			// var socket = io(.connect('http://localhost:8080/'));
+			var socket = io();
+			
+			socket.on('connect', function() {
+				console.log("Connected");
+			});
+
+			// Receive from any event
+			socket.on('new pixel', function (data) {
+				//console.log(data.x + " " + data.y);
+				drawOther(data.x,data.y,data.h);
+			});
+			
+			var sendInit = function(xval, yval, hval) {
+				drawSelf(xval,yval,hval);
+				socket.emit('new pixel',{ x: xval, y: yval,h: hval });
+			};
+
+			var gridSize = 20;
+			var gridW, gridH;
+			var initX, initY,initH;
+			var initS = 70;
+			var initB = 90;
+
+			function setup(){
+				var canvasContainer=document.getElementById("canvasContainer");
+				var myCanvas = createCanvas(600,600);
+				myCanvas.parent(canvasContainer);
+				colorMode(HSB,100);
+				background(70,45,30);
+				
+				
+				gridW = width/gridSize;
+				gridH = height/gridSize;
+
+				
+				initX = rand(0,gridW-1);
+				initY = rand(0,gridH-1);
+
+				initH = get_random_color();
+
+				sendInit(initX,initY, initH);
+				colorMode(HSB,100);
+					fill(initH, initS,initB);
+				rect(gridSize*initX, gridSize*initY, gridSize,gridSize);
+
+			}
+
+			document.onkeydown = function(e){
+				e = e || window.event;
+   				if (e.keyCode == '38') {
+        			// up arrow
+        			if(initY > 0){
+        				initY -=1;
+        			}	
+    			}
+    			else if (e.keyCode == '40') {
+        			// down arrow
+        			if(initY < (gridH-1)){
+        				initY +=1;
+        			}	
+    			}
+    			else if (e.keyCode == '37') {
+       				// left arrow
+       				if(initX > 0){
+        				initX -=1;
+        			}
+    			}
+    			else if (e.keyCode == '39') {
+       				// right arrow
+       				if(initX < (gridW-1)){
+        				initX +=1;
+        			}	
+    			}
+
+    			sendInit(initX,initY,initH);
+    		}
+
+
+
+			function draw(){
+				
+			};
+
+			function drawSelf(xval,yval,hval){
+				colorMode(HSB,100);
+				fill(hval,initS,initB);
+				noStroke();
+				rect(gridSize*xval, gridSize*yval, gridSize,gridSize);
+			}
+
+			function drawOther(xval,yval,hval){
+				colorMode(HSB,100);
+				fill(hval,initS,initB);
+				noStroke();
+				rect(gridSize*xval, gridSize*yval, gridSize,gridSize);
+			}
+
+
+			function rand(min, max) {
+        		return Math.round(min + Math.random() * (max - min));
+      		}
+      		function get_random_color() {
+      	      	var h = rand(1, 100);
+        // var s = 70;
+        // var b = 60;
+        // return 'hsl(' + h + ',' + s + '%,' + l + '%)';
+        		return  h;
+      		}
+		</script>	
+	</body>
+</html>
